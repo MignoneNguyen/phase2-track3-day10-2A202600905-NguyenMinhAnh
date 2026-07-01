@@ -299,11 +299,11 @@ def main() -> None:
                     <p>The fallback path was successfully tested and maintained a <strong>{metrics.get('availability', 0) * 100:.1f}% availability</strong> despite primary provider failure rates and timeouts being simulated in chaos testing. The circuit breaker appropriately prevented retry storms by entering the <code>OPEN</code> state {metrics.get('circuit_open_count', 0)} times.</p>
                     
                     <div class="highlight-box red">
-                        <p><strong>Remaining Weakness:</strong> The Redis cache <code>keys</code> scanning iteration can block or become a bottleneck with millions of entries since we are scanning for semantic similarity over a high volume of key pairs.</p>
+                        <p><strong>Remaining Weakness:</strong> The static fallback. If all providers are down, the user just gets a degraded static message which might not be useful.</p>
                     </div>
 
                     <div class="highlight-box">
-                        <p><strong>Proposed Fix:</strong> Instead of linearly scanning all keys during a similarity query, we should migrate the cache lookup to a vector database backend (like Qdrant or Redis Vector Search) where an approximate nearest neighbor (ANN) search on embeddings can provide O(log N) fast retrieval.</p>
+                        <p><strong>Proposed Fix:</strong> Implement a stale-cache fallback (returning an expired cache entry if available instead of a generic error message), and consider per-user rate limiting to prevent a single noisy user from tripping the circuit breaker for everyone else.</p>
                     </div>
                 </div>
             </div>

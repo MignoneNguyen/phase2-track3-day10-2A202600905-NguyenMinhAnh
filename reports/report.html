@@ -239,23 +239,23 @@
         <div class="metrics-grid">
             <div class="glass-card metric-item">
                 <span class="metric-label">Availability</span>
-                <span class="metric-value value-green">98.5%</span>
+                <span class="metric-value value-green">99.2%</span>
                 <span class="metric-label" style="text-transform: none; color: #8b949e; font-size: 0.8rem; margin-top: auto;">400 Total Requests</span>
             </div>
             <div class="glass-card metric-item">
                 <span class="metric-label">Cache Hit Rate</span>
-                <span class="metric-value value-blue">45.0%</span>
-                <span class="metric-label" style="text-transform: none; color: #8b949e; font-size: 0.8rem; margin-top: auto;">Cost Saved: $0.18</span>
+                <span class="metric-value value-blue">47.8%</span>
+                <span class="metric-label" style="text-transform: none; color: #8b949e; font-size: 0.8rem; margin-top: auto;">Cost Saved: $0.19</span>
             </div>
             <div class="glass-card metric-item">
                 <span class="metric-label">P99 Latency</span>
-                <span class="metric-value value-purple">320.8ms</span>
-                <span class="metric-label" style="text-transform: none; color: #8b949e; font-size: 0.8rem; margin-top: auto;">P50: 232.6ms</span>
+                <span class="metric-value value-purple">318.4ms</span>
+                <span class="metric-label" style="text-transform: none; color: #8b949e; font-size: 0.8rem; margin-top: auto;">P50: 232.3ms</span>
             </div>
             <div class="glass-card metric-item">
                 <span class="metric-label">Circuit Interventions</span>
-                <span class="metric-value" style="color: #f1e05a;">7</span>
-                <span class="metric-label" style="text-transform: none; color: #8b949e; font-size: 0.8rem; margin-top: auto;">Recovery Avg: 2.29s</span>
+                <span class="metric-value" style="color: #f1e05a;">8</span>
+                <span class="metric-label" style="text-transform: none; color: #8b949e; font-size: 0.8rem; margin-top: auto;">Recovery Avg: 2.51s</span>
             </div>
         </div>
 
@@ -263,6 +263,7 @@
             <div class="glass-card">
                 <h2 class="section-title">Chaos Scenarios</h2>
                 <ul class="scenario-list">
+
                     <li class="scenario-item">
                         <span class="scenario-name">primary_timeout_100</span>
                         <span class="badge-pass">Pass</span>
@@ -285,14 +286,14 @@
             <div class="glass-card">
                 <h2 class="section-title">Analysis & Insights</h2>
                 <div class="analysis-content">
-                    <p>The fallback path was successfully tested and maintained a <strong>98.5% availability</strong> despite primary provider failure rates and timeouts being simulated in chaos testing. The circuit breaker appropriately prevented retry storms by entering the <code>OPEN</code> state 7 times.</p>
+                    <p>The fallback path was successfully tested and maintained a <strong>99.2% availability</strong> despite primary provider failure rates and timeouts being simulated in chaos testing. The circuit breaker appropriately prevented retry storms by entering the <code>OPEN</code> state 8 times.</p>
                     
                     <div class="highlight-box red">
-                        <p><strong>Remaining Weakness:</strong> The Redis cache <code>keys</code> scanning iteration can block or become a bottleneck with millions of entries since we are scanning for semantic similarity over a high volume of key pairs.</p>
+                        <p><strong>Remaining Weakness:</strong> The static fallback. If all providers are down, the user just gets a degraded static message which might not be useful.</p>
                     </div>
 
                     <div class="highlight-box">
-                        <p><strong>Proposed Fix:</strong> Instead of linearly scanning all keys during a similarity query, we should migrate the cache lookup to a vector database backend (like Qdrant or Redis Vector Search) where an approximate nearest neighbor (ANN) search on embeddings can provide O(log N) fast retrieval.</p>
+                        <p><strong>Proposed Fix:</strong> Implement a stale-cache fallback (returning an expired cache entry if available instead of a generic error message), and consider per-user rate limiting to prevent a single noisy user from tripping the circuit breaker for everyone else.</p>
                     </div>
                 </div>
             </div>
